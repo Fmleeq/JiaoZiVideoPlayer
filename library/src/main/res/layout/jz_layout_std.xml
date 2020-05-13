@@ -72,7 +72,6 @@
             android:clickable="true"
             android:paddingLeft="20dp"
             android:text="clarity"
-
             android:textAlignment="center"
             android:textColor="#ffffff" />
 

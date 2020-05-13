@@ -1,4 +1,4 @@
-package cn.jzvd.demo.api.BigUIChangeAG.popup;
+package cn.jzvd.demo.api.BigUIChangeAG;
 
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;

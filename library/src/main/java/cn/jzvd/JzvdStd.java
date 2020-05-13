@@ -233,6 +233,7 @@ public class JzvdStd extends Jzvd {
         if (id == R.id.surface_container) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
+                    break;
                 case MotionEvent.ACTION_MOVE:
                     break;
                 case MotionEvent.ACTION_UP:
@@ -286,114 +287,86 @@ public class JzvdStd extends Jzvd {
         super.onClick(v);
         int i = v.getId();
         if (i == R.id.poster) {
-            clickPoster();
-        } else if (i == R.id.surface_container) {
-            clickSurfaceContainer();
-            if (clarityPopWindow != null) {
-                clarityPopWindow.dismiss();
+            if (jzDataSource == null || jzDataSource.urlsMap.isEmpty() || jzDataSource.getCurrentUrl() == null) {
+                Toast.makeText(getContext(), getResources().getString(R.string.no_url), Toast.LENGTH_SHORT).show();
+                return;
             }
+            if (state == STATE_NORMAL) {
+                if (!jzDataSource.getCurrentUrl().toString().startsWith("file") &&
+                        !jzDataSource.getCurrentUrl().toString().startsWith("/") &&
+                        !JZUtils.isWifiConnected(getContext()) && !WIFI_TIP_DIALOG_SHOWED) {
+                    showWifiDialog();
+                    return;
+                }
+                startVideo();
+            } else if (state == STATE_AUTO_COMPLETE) {
+                onClickUiToggle();
+            }
+        } else if (i == R.id.surface_container) {
+            startDismissControlViewTimer();
         } else if (i == R.id.back) {
-            clickBack();
+            backPress();
         } else if (i == R.id.back_tiny) {
-            clickBackTiny();
+            clearFloatScreen();
         } else if (i == R.id.clarity) {
-            clickClarity();
-        } else if (i == R.id.retry_btn) {
-            clickRetryBtn();
-        }
-    }
+            LayoutInflater inflater = (LayoutInflater) getContext()
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            final LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.jz_layout_clarity, null);
 
-    private void clickRetryBtn() {
-        if (jzDataSource.urlsMap.isEmpty() || jzDataSource.getCurrentUrl() == null) {
-            Toast.makeText(getContext(), getResources().getString(R.string.no_url), Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (!jzDataSource.getCurrentUrl().toString().startsWith("file") && !
-                jzDataSource.getCurrentUrl().toString().startsWith("/") &&
-                !JZUtils.isWifiConnected(getContext()) && !WIFI_TIP_DIALOG_SHOWED) {
-            showWifiDialog();
-            return;
-        }
-        startVideo();
-    }
-
-    private void clickClarity() {
-        onCLickUiToggleToClear();
-
-        LayoutInflater inflater = (LayoutInflater) getContext()
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        final LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.jz_layout_clarity, null);
-
-        OnClickListener mQualityListener = v1 -> {
-            int index = (int) v1.getTag();
+            OnClickListener mQualityListener = v1 -> {
+                int index = (int) v1.getTag();
 
 //                this.seekToInAdvance = getCurrentPositionWhenPlaying();
-            jzDataSource.currentUrlIndex = index;
+                jzDataSource.currentUrlIndex = index;
 //                onStatePreparingChangeUrl();
 
-            changeUrl(jzDataSource, getCurrentPositionWhenPlaying());
+                changeUrl(jzDataSource, getCurrentPositionWhenPlaying());
 
-            clarity.setText(jzDataSource.getCurrentKey().toString());
-            for (int j = 0; j < layout.getChildCount(); j++) {//设置点击之后的颜色
+                clarity.setText(jzDataSource.getCurrentKey().toString());
+                for (int j = 0; j < layout.getChildCount(); j++) {//设置点击之后的颜色
+                    if (j == jzDataSource.currentUrlIndex) {
+                        ((TextView) layout.getChildAt(j)).setTextColor(Color.parseColor("#fff85959"));
+                    } else {
+                        ((TextView) layout.getChildAt(j)).setTextColor(Color.parseColor("#ffffff"));
+                    }
+                }
+                if (clarityPopWindow != null) {
+                    clarityPopWindow.dismiss();
+                }
+            };
+
+            for (int j = 0; j < jzDataSource.urlsMap.size(); j++) {
+                String key = jzDataSource.getKeyFromDataSource(j);
+                TextView clarityItem = (TextView) View.inflate(getContext(), R.layout.jz_layout_clarity_item, null);
+                clarityItem.setText(key);
+                clarityItem.setTag(j);
+                layout.addView(clarityItem, j);
+                clarityItem.setOnClickListener(mQualityListener);
                 if (j == jzDataSource.currentUrlIndex) {
-                    ((TextView) layout.getChildAt(j)).setTextColor(Color.parseColor("#fff85959"));
-                } else {
-                    ((TextView) layout.getChildAt(j)).setTextColor(Color.parseColor("#ffffff"));
+                    clarityItem.setTextColor(Color.parseColor("#fff85959"));
                 }
             }
-            if (clarityPopWindow != null) {
-                clarityPopWindow.dismiss();
+
+            clarityPopWindow = new PopupWindow(layout, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, true);
+            clarityPopWindow.setContentView(layout);
+            clarityPopWindow.showAsDropDown(clarity);
+            layout.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+            int offsetX = clarity.getMeasuredWidth() / 3;
+            int offsetY = clarity.getMeasuredHeight() / 3;
+            clarityPopWindow.update(clarity, -offsetX, -offsetY, Math.round(layout.getMeasuredWidth() * 2), layout.getMeasuredHeight());
+        } else if (i == R.id.retry_btn) {
+            if (jzDataSource.urlsMap.isEmpty() || jzDataSource.getCurrentUrl() == null) {
+                Toast.makeText(getContext(), getResources().getString(R.string.no_url), Toast.LENGTH_SHORT).show();
+                return;
             }
-        };
-
-        for (int j = 0; j < jzDataSource.urlsMap.size(); j++) {
-            String key = jzDataSource.getKeyFromDataSource(j);
-            TextView clarityItem = (TextView) View.inflate(getContext(), R.layout.jz_layout_clarity_item, null);
-            clarityItem.setText(key);
-            clarityItem.setTag(j);
-            layout.addView(clarityItem, j);
-            clarityItem.setOnClickListener(mQualityListener);
-            if (j == jzDataSource.currentUrlIndex) {
-                clarityItem.setTextColor(Color.parseColor("#fff85959"));
-            }
-        }
-
-        clarityPopWindow = new PopupWindow(layout, JZUtils.dip2px(getContext(), 240), LayoutParams.MATCH_PARENT, true);
-        clarityPopWindow.setContentView(layout);
-        clarityPopWindow.setAnimationStyle(R.style.pop_animation);
-        clarityPopWindow.showAtLocation(textureViewContainer, Gravity.END, 0, 0);
-//            int offsetX = clarity.getMeasuredWidth() / 3;
-//            int offsetY = clarity.getMeasuredHeight() / 3;
-//            clarityPopWindow.update(clarity, -offsetX, -offsetY, Math.round(layout.getMeasuredWidth() * 2), layout.getMeasuredHeight());
-    }
-
-    private void clickBackTiny() {
-        clearFloatScreen();
-    }
-
-    private void clickBack() {
-        backPress();
-    }
-
-    private void clickSurfaceContainer() {
-        startDismissControlViewTimer();
-    }
-
-    private void clickPoster() {
-        if (jzDataSource == null || jzDataSource.urlsMap.isEmpty() || jzDataSource.getCurrentUrl() == null) {
-            Toast.makeText(getContext(), getResources().getString(R.string.no_url), Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (state == STATE_NORMAL) {
-            if (!jzDataSource.getCurrentUrl().toString().startsWith("file") &&
-                    !jzDataSource.getCurrentUrl().toString().startsWith("/") &&
+            if (!jzDataSource.getCurrentUrl().toString().startsWith("file") && !
+                    jzDataSource.getCurrentUrl().toString().startsWith("/") &&
                     !JZUtils.isWifiConnected(getContext()) && !WIFI_TIP_DIALOG_SHOWED) {
                 showWifiDialog();
                 return;
             }
-            startVideo();
-        } else if (state == STATE_AUTO_COMPLETE) {
-            onClickUiToggle();
+            addTextureView();
+            onStatePreparing();
         }
     }
 
@@ -538,7 +511,6 @@ public class JzvdStd extends Jzvd {
         }
     }
 
-    //** 和onClickUiToggle重复，要干掉
     public void onCLickUiToggleToClear() {
         if (state == STATE_PREPARING) {
             if (bottomContainer.getVisibility() == View.VISIBLE) {
@@ -889,6 +861,9 @@ public class JzvdStd extends Jzvd {
     public void reset() {
         super.reset();
         cancelDismissControlViewTimer();
+        if (clarityPopWindow != null) {
+            clarityPopWindow.dismiss();
+        }
         unregisterWifiListener(getApplicationContext());
     }
 
@@ -900,7 +875,9 @@ public class JzvdStd extends Jzvd {
                 bottomContainer.setVisibility(View.INVISIBLE);
                 topContainer.setVisibility(View.INVISIBLE);
                 startButton.setVisibility(View.INVISIBLE);
-
+                if (clarityPopWindow != null) {
+                    clarityPopWindow.dismiss();
+                }
                 if (screen != SCREEN_TINY) {
                     bottomProgressBar.setVisibility(View.VISIBLE);
                 }

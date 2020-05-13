@@ -1,4 +1,4 @@
-package cn.jzvd.demo.api.BigUIChangeAG.view;
+package cn.jzvd.demo.api.BigUIChangeAG;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;

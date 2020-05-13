@@ -13,7 +13,7 @@
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/jz_network_security_config"
         android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning,LockedOrientationActivity">
+        tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
@@ -57,6 +57,10 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".ApiActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".api.SmallChangeUiActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait" />
@@ -97,6 +101,7 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
+
         <activity
             android:name=".ListView.ListViewToDetailActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
@@ -110,10 +115,12 @@
             android:name=".ListView.AutoPlayListViewActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait" />
+
         <activity
             android:name=".LocalVideoActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait" />
+
         <activity
             android:name=".api.ScreenRotateActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
